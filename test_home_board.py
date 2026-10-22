@@ -1,49 +1,30 @@
 import re
-from playwright.sync_api import Page, expect
 
-def test_navigate_to_home_board(page: Page):
-    # 1. Navigate to the website home board
-    page.goto("https://wynnalmarjanisland.com/")
-    
-    # 2. Verify that the page title contains "Wynn" using a regex pattern
+from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError, expect
+
+HOME_URL = "https://wynnalmarjanisland.com/"
+ROOMS_URL = "https://wynnalmarjanisland.com/rooms-and-suites"
+
+
+def _dismiss_cookie_banner_if_present(page: Page) -> None:
+    accept = page.locator("#onetrust-accept-btn-handler")
+    try:
+        accept.wait_for(state="visible", timeout=5000)
+    except PlaywrightTimeoutError:
+        return
+    accept.click()
+
+
+def test_home_page_title(page: Page):
+    page.goto(HOME_URL)
     expect(page).to_have_title(re.compile("Wynn"))
 
-import re
-from playwright.sync_api import Page, expect
 
 def test_navigate_to_home_board(page: Page):
-    # 1. Navigate to the website home board
-    page.goto("https://wynnalmarjanisland.com/")
-    
-    # 2. Verify home page title
+    page.goto(HOME_URL)
     expect(page).to_have_title(re.compile("Wynn"))
 
-    # 3. Click "Allow All" on the cookie banner (using ID or role)
-    # Option A: By element ID (from your screenshot)
-    page.locator("#onetrust-accept-btn-handler").click()
-    
-    # Alternatively, Option B using accessible role:
-    # page.get_by_role("button", name="Allow All").click()
+    _dismiss_cookie_banner_if_present(page)
 
-    # 4. Click the "ROOMS & SUITES" navigation link
     page.get_by_role("link", name="Rooms & Suites").click()
-
-    # 5. Assert navigation to rooms-and-suites URL
-    expect(page).to_have_url("https://wynnalmarjanisland.com/rooms-and-suites")
-
-
-import re
-from playwright.sync_api import Page, expect
-
-def test_navigate_to_home_board(page: Page):
-    # 1. Navigate to the website home board
-    page.goto("https://wynnalmarjanisland.com/")
-    
-    # 2. Verify that the home page title contains "Wynn"
-    expect(page).to_have_title(re.compile("Wynn"))
-
-    # 3. Click the "ROOMS & SUITES" navigation link
-    page.get_by_role("link", name="Rooms & Suites").click()
-
-    # 4. Assert that the URL matches https://wynnalmarjanisland.com/rooms-and-suites
-    expect(page).to_have_url("https://wynnalmarjanisland.com/rooms-and-suites")
+    expect(page).to_have_url(ROOMS_URL)
